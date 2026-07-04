@@ -1,0 +1,224 @@
+:root {
+  --yellow: #FFC800;
+  --yellow-dark: #E0AC00;
+  --black: #1A1A1A;
+  --grey: #4B4B4B;
+  --grey-light: #E5E5E5;
+  --white: #FFFFFF;
+  --red: #FF4B4B;
+  --green: #58A700;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--white);
+  color: var(--black);
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px;
+  background: var(--black);
+  color: var(--white);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 4px solid var(--yellow);
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--yellow);
+  letter-spacing: 0.5px;
+}
+.logo span { color: var(--white); font-weight: 600; font-size: 15px; margin-left: 6px; }
+
+.stats { display: flex; gap: 18px; font-weight: 700; }
+.stat { display: flex; align-items: center; gap: 4px; }
+
+#app { max-width: 720px; margin: 0 auto; padding: 24px 16px 60px; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* --- ГЛАВНАЯ / КАРТА УРОКОВ --- */
+.review-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--yellow);
+  border: 3px solid var(--black);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+.review-card.hidden { display: none; }
+.review-title { font-weight: 800; font-size: 17px; }
+.review-sub { font-size: 13px; color: var(--grey); }
+
+.lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.lesson-node {
+  background: var(--white);
+  border: 3px solid var(--black);
+  border-radius: 16px;
+  padding: 16px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  position: relative;
+}
+.lesson-node:hover { transform: translateY(-3px); }
+.lesson-node:active { transform: translateY(0); }
+.lesson-node.mastered { background: var(--yellow); }
+
+.lesson-icon { font-size: 32px; }
+.lesson-title { font-weight: 700; font-size: 14px; margin-top: 6px; }
+.lesson-progress {
+  margin-top: 8px;
+  height: 6px;
+  background: var(--grey-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.lesson-progress-fill { height: 100%; background: var(--green); }
+.lesson-count { font-size: 11px; color: var(--grey); margin-top: 4px; }
+
+/* --- ЭКРАН УРОКА --- */
+.progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 40px;
+}
+.btn-icon {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--grey);
+}
+.progress-bar {
+  flex: 1;
+  height: 14px;
+  background: var(--grey-light);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--yellow);
+  transition: width 0.3s ease;
+}
+
+.card-area {
+  text-align: center;
+  padding: 30px 20px;
+  border: 3px solid var(--black);
+  border-radius: 20px;
+  margin-bottom: 28px;
+  position: relative;
+  background: var(--white);
+}
+.prompt { font-size: 13px; color: var(--grey); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.prompt-main { font-size: 40px; font-weight: 800; margin-top: 12px; line-height: 1.3; }
+.prompt-main.small { font-size: 24px; }
+
+.btn-speak {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--yellow);
+  border: 2px solid var(--black);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.option-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 18px 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--black);
+  border: 3px solid var(--grey-light);
+  border-radius: 14px;
+  background: var(--white);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.option-btn:hover { border-color: var(--black); }
+.option-btn.correct,
+.option-btn.correct:disabled { border-color: var(--green); background: #d7f5c1; color: var(--black); }
+.option-btn.wrong,
+.option-btn.wrong:disabled { border-color: var(--red); background: #ffd6d6; color: var(--black); }
+.option-btn:disabled { cursor: default; opacity: 1; }
+
+.feedback {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  padding: 20px 24px 28px;
+  border-top: 3px solid var(--black);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 16px;
+}
+.feedback.correct { background: #d7f5c1; color: #2b6b00; }
+.feedback.wrong { background: #ffd6d6; color: #8a0000; }
+.feedback.hidden { display: none; }
+
+.btn {
+  border: none;
+  border-radius: 14px;
+  padding: 14px 26px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-dark { background: var(--black); color: var(--white); }
+.btn-yellow { background: var(--yellow); color: var(--black); border: 3px solid var(--black); }
+
+/* --- РЕЗУЛЬТАТЫ --- */
+.result-box {
+  text-align: center;
+  padding: 60px 20px;
+}
+.result-emoji { font-size: 60px; }
+.result-stats {
+  margin: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.hidden { display: none !important; }
+
+@media (max-width: 480px) {
+  .prompt-main { font-size: 30px; }
+  .options { grid-template-columns: 1fr; }
+}
