@@ -48,6 +48,64 @@ function speak(text) {
   window.speechSynthesis.speak(u);
 }
 
+// ---------- Звуковые эффекты (Web Audio API, без внешних файлов) ----------
+
+const SOUND_KEY = "kedu_sound_v1";
+let soundEnabled = localStorage.getItem(SOUND_KEY) !== "off";
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(freq, startTime, duration, type = "sine", peakGain = 0.2) {
+  const ctx = getAudioCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
+  gain.gain.linearRampToValueAtTime(peakGain, ctx.currentTime + startTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(ctx.currentTime + startTime);
+  osc.stop(ctx.currentTime + startTime + duration + 0.02);
+}
+
+function playSound(name) {
+  if (!soundEnabled) return;
+  try {
+    if (name === "correct") {
+      playTone(660, 0, 0.12);
+      playTone(880, 0.1, 0.18);
+    } else if (name === "wrong") {
+      playTone(180, 0, 0.25, "sawtooth", 0.12);
+    } else if (name === "complete") {
+      [523, 659, 784, 1046].forEach((freq, i) => playTone(freq, i * 0.09, 0.2));
+    } else if (name === "fail") {
+      playTone(220, 0, 0.2, "sawtooth", 0.12);
+      playTone(160, 0.15, 0.3, "sawtooth", 0.12);
+    }
+  } catch (e) {
+    // AudioContext недоступен (например, без взаимодействия пользователя) — просто без звука
+  }
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem(SOUND_KEY, soundEnabled ? "on" : "off");
+  updateSoundButton();
+  if (soundEnabled) playSound("correct");
+}
+
+function updateSoundButton() {
+  const btn = document.getElementById("btn-sound");
+  if (btn) btn.textContent = soundEnabled ? "🔊" : "🔇";
+}
+
 // ---------- Аккаунты (localStorage, без сервера) ----------
 
 async function hashPassword(password) {
@@ -333,11 +391,13 @@ function checkAnswer(btn, word, isCorrect) {
     session.correct++;
     session.xpEarned += XP_PER_CORRECT;
     progress.xp += XP_PER_CORRECT;
+    playSound("correct");
   } else {
     btn.classList.add("wrong");
     session.wrong++;
     session.hearts--;
     document.querySelector(`.option-btn[data-option-id="${word.id}"]`)?.classList.add("correct");
+    playSound("wrong");
   }
 
   registerAnswer(word.id, isCorrect);
@@ -372,6 +432,9 @@ function finishSession(failed) {
       progress.xp += XP_LESSON_BONUS;
     }
     updateStreakOnComplete();
+    playSound("complete");
+  } else {
+    playSound("fail");
   }
   saveProgress();
 
@@ -404,6 +467,8 @@ document.getElementById("btn-exit").addEventListener("click", () => {
 });
 
 document.getElementById("btn-logout").addEventListener("click", logout);
+document.getElementById("btn-sound").addEventListener("click", toggleSound);
+updateSoundButton();
 
 document.getElementById("nav-home").addEventListener("click", () => {
   showScreen("home");

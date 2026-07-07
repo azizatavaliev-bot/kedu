@@ -40,8 +40,17 @@ body {
 }
 .logo span { color: var(--white); font-weight: 600; font-size: 15px; margin-left: 6px; }
 
-.stats { display: flex; gap: 18px; font-weight: 700; }
+.stats { display: flex; align-items: center; gap: 18px; font-weight: 700; }
 .stat { display: flex; align-items: center; gap: 4px; }
+
+.btn-sound {
+  background: none;
+  border: none;
+  font-size: 17px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
 
 #app { max-width: 720px; margin: 0 auto; padding: 24px 16px calc(84px + env(safe-area-inset-bottom)); }
 
