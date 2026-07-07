@@ -40,10 +40,34 @@ function sample(arr, n) {
   return shuffle(arr).slice(0, n);
 }
 
+let cachedVoices = [];
+if ("speechSynthesis" in window) {
+  const refreshVoices = () => { cachedVoices = window.speechSynthesis.getVoices(); };
+  refreshVoices();
+  window.speechSynthesis.onvoiceschanged = refreshVoices;
+}
+
+const PREFERRED_ZH_VOICES = ["tingting", "meijia", "yaoyao", "xiaoxiao"]; // системные голоса с наиболее чёткой дикцией
+
+function pickChineseVoice() {
+  const zhCN = cachedVoices.filter((v) => v.lang === "zh-CN");
+  const preferred = zhCN.find((v) => PREFERRED_ZH_VOICES.some((name) => v.name.toLowerCase().includes(name)));
+  return (
+    preferred ||
+    zhCN[0] ||
+    cachedVoices.find((v) => v.lang?.toLowerCase().startsWith("zh")) ||
+    null
+  );
+}
+
 function speak(text) {
   if (!("speechSynthesis" in window)) return;
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "zh-CN";
+  const voice = pickChineseVoice();
+  if (voice) u.voice = voice;
+  u.rate = 0.88; // чуть медленнее для разборчивости
+  u.pitch = 1;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(u);
 }
@@ -104,6 +128,24 @@ function toggleSound() {
 function updateSoundButton() {
   const btn = document.getElementById("btn-sound");
   if (btn) btn.textContent = soundEnabled ? "🔊" : "🔇";
+}
+
+// ---------- Тема (светлая/тёмная) ----------
+
+const THEME_KEY = "kedu_theme_v1";
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme");
+  const next = current === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem(THEME_KEY, next);
+  updateThemeButton();
+}
+
+function updateThemeButton() {
+  const btn = document.getElementById("btn-theme");
+  const theme = document.documentElement.getAttribute("data-theme");
+  if (btn) btn.textContent = theme === "dark" ? "🌙" : "☀️";
 }
 
 // ---------- Аккаунты (localStorage, без сервера) ----------
@@ -499,6 +541,9 @@ document.getElementById("btn-exit").addEventListener("click", () => {
 document.getElementById("btn-logout").addEventListener("click", logout);
 document.getElementById("btn-sound").addEventListener("click", toggleSound);
 updateSoundButton();
+
+document.getElementById("btn-theme").addEventListener("click", toggleTheme);
+updateThemeButton();
 
 document.getElementById("nav-home").addEventListener("click", () => {
   showScreen("home");

@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Кеду — учи китайский</title>
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem("kedu_theme_v1");
+      var theme = saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    } catch (e) {}
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -18,6 +27,7 @@
     <div class="stat" id="stat-xp-wrap" title="Опыт"><span class="stat-icon">⭐</span> <span id="stat-xp">0</span></div>
     <div class="stat hearts" id="stat-hearts" title="Жизни">❤️ <span id="stat-lives">5</span></div>
     <button id="btn-sound" class="btn-sound" title="Звук">🔊</button>
+    <button id="btn-theme" class="btn-theme" title="Тема">🌙</button>
   </div>
 </header>
 
