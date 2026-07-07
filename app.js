@@ -321,19 +321,19 @@ function refreshHeader() {
 }
 
 function launchConfetti() {
-  const colors = ["#FFC800", "#58A700", "#1CB0F6", "#FF4B4B", "#1A1A1A"];
+  const colors = ["#F5B400", "#171717", "#3A9A5C"];
   const container = document.getElementById("confetti");
   container.innerHTML = "";
-  for (let i = 0; i < 32; i++) {
+  for (let i = 0; i < 16; i++) {
     const piece = document.createElement("div");
     piece.className = "confetti-piece";
     piece.style.left = `${Math.random() * 100}%`;
     piece.style.background = colors[i % colors.length];
-    piece.style.animationDuration = `${1.2 + Math.random() * 0.8}s`;
-    piece.style.animationDelay = `${Math.random() * 0.3}s`;
+    piece.style.animationDuration = `${1.1 + Math.random() * 0.6}s`;
+    piece.style.animationDelay = `${Math.random() * 0.25}s`;
     container.appendChild(piece);
   }
-  setTimeout(() => { container.innerHTML = ""; }, 2200);
+  setTimeout(() => { container.innerHTML = ""; }, 2000);
 }
 
 // ---------- Главная: карта уроков ----------
