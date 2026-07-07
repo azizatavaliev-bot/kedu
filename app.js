@@ -1,13 +1,18 @@
-// Кеду — логика приложения: SRS, карточки, геймификация.
+// Кеду — логика приложения: аккаунты, SRS, карточки, геймификация.
 
-const STORAGE_KEY = "kedu_progress_v1";
+const USERS_KEY = "kedu_users_v1";
+const SESSION_KEY = "kedu_session_v1";
 const BOX_INTERVALS_DAYS = [0, 1, 2, 4, 7, 14, 30]; // индекс = "коробка" Лейтнера
 const START_HEARTS = 5;
 const XP_PER_CORRECT = 10;
 const XP_LESSON_BONUS = 50;
+const XP_PER_LEVEL = 200;
 
 let progress = null;
 let session = null;
+let currentUser = null; // никнейм текущего пользователя (для отображения)
+let currentUserKey = null; // ключ пользователя в нижнем регистре (для localStorage)
+let authMode = "login"; // "login" | "register"
 
 // ---------- Утилиты ----------
 
@@ -43,15 +48,81 @@ function speak(text) {
   window.speechSynthesis.speak(u);
 }
 
-// ---------- Прогресс (localStorage) ----------
+// ---------- Аккаунты (localStorage, без сервера) ----------
+
+async function hashPassword(password) {
+  const bytes = new TextEncoder().encode(password);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function loadUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(USERS_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function setSession(userKey) {
+  currentUserKey = userKey;
+  if (userKey) localStorage.setItem(SESSION_KEY, userKey);
+  else localStorage.removeItem(SESSION_KEY);
+}
+
+async function handleAuthSubmit(nickname, password) {
+  nickname = nickname.trim();
+  const key = nickname.toLowerCase();
+  if (nickname.length < 2) return "Никнейм слишком короткий";
+  if (password.length < 4) return "Пароль минимум 4 символа";
+
+  const users = loadUsers();
+  const passwordHash = await hashPassword(password);
+
+  if (authMode === "register") {
+    if (users[key]) return "Такой никнейм уже занят";
+    users[key] = { nickname, passwordHash };
+    saveUsers(users);
+  } else {
+    const user = users[key];
+    if (!user || user.passwordHash !== passwordHash) return "Неверный никнейм или пароль";
+    nickname = user.nickname;
+  }
+
+  currentUser = nickname;
+  setSession(key);
+  loadProgress(key);
+  showScreen("home");
+  renderHome();
+  return null;
+}
+
+function logout() {
+  setSession(null);
+  currentUser = null;
+  progress = null;
+  document.getElementById("auth-form").reset();
+  setAuthMode("login");
+  showScreen("auth");
+}
+
+// ---------- Прогресс (localStorage, отдельно на пользователя) ----------
 
 function defaultProgress() {
   return { xp: 0, streak: 0, lastStudyDate: null, wordProgress: {} };
 }
 
-function loadProgress() {
+function progressKey(userKey) {
+  return `kedu_progress_v1_${userKey}`;
+}
+
+function loadProgress(userKey) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(progressKey(userKey));
     progress = raw ? JSON.parse(raw) : defaultProgress();
   } catch (e) {
     progress = defaultProgress();
@@ -59,7 +130,7 @@ function loadProgress() {
 }
 
 function saveProgress() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  localStorage.setItem(progressKey(currentUserKey), JSON.stringify(progress));
 }
 
 function updateStreakOnComplete() {
@@ -94,7 +165,17 @@ function singleCharacters() {
 function showScreen(name) {
   document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
   document.getElementById(`screen-${name}`).classList.add("active");
-  document.getElementById("stat-hearts").parentElement.classList.toggle("hidden", name !== "lesson");
+  document.getElementById("stat-hearts").classList.toggle("hidden", name !== "lesson");
+
+  document.getElementById("topbar").classList.toggle("hidden", name === "auth");
+
+  const bottomNav = document.getElementById("bottom-nav");
+  const showNav = name === "home" || name === "profile";
+  bottomNav.classList.toggle("hidden", !showNav);
+  if (showNav) {
+    document.getElementById("nav-home").classList.toggle("active", name === "home");
+    document.getElementById("nav-profile").classList.toggle("active", name === "profile");
+  }
 }
 
 function refreshHeader() {
@@ -139,6 +220,30 @@ function renderHome() {
     node.addEventListener("click", () => startLesson(lesson.id));
     grid.appendChild(node);
   });
+}
+
+// ---------- Личный кабинет ----------
+
+function renderProfile() {
+  refreshHeader();
+
+  const level = Math.floor(progress.xp / XP_PER_LEVEL) + 1;
+  const xpIntoLevel = progress.xp % XP_PER_LEVEL;
+
+  document.getElementById("profile-nickname").textContent = currentUser;
+  document.getElementById("profile-avatar").textContent = currentUser.charAt(0).toUpperCase();
+  document.getElementById("profile-level").textContent = `Уровень ${level}`;
+  document.getElementById("level-xp-into").textContent = xpIntoLevel;
+  document.getElementById("level-xp-total").textContent = XP_PER_LEVEL;
+  document.getElementById("level-bar-fill").style.width = `${Math.round((xpIntoLevel / XP_PER_LEVEL) * 100)}%`;
+
+  const wordsLearned = WORDS.filter((w) => (progress.wordProgress[w.id]?.box ?? 0) >= 3).length;
+  const charsLearned = singleCharacters().filter((w) => (progress.wordProgress[w.id]?.box ?? 0) >= 3).length;
+
+  document.getElementById("profile-words").textContent = wordsLearned;
+  document.getElementById("profile-chars").textContent = charsLearned;
+  document.getElementById("profile-streak").textContent = progress.streak;
+  document.getElementById("profile-xp").textContent = progress.xp;
 }
 
 // ---------- Сессия карточек ----------
@@ -298,6 +403,68 @@ document.getElementById("btn-exit").addEventListener("click", () => {
   }
 });
 
-loadProgress();
-showScreen("home");
-renderHome();
+document.getElementById("btn-logout").addEventListener("click", logout);
+
+document.getElementById("nav-home").addEventListener("click", () => {
+  showScreen("home");
+  renderHome();
+});
+document.getElementById("nav-profile").addEventListener("click", () => {
+  showScreen("profile");
+  renderProfile();
+});
+
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById("auth-error").classList.add("hidden");
+  if (mode === "register") {
+    document.getElementById("auth-title").textContent = "Регистрация";
+    document.getElementById("auth-submit").textContent = "Зарегистрироваться";
+    document.getElementById("auth-switch-text").textContent = "Уже есть аккаунт?";
+    document.getElementById("auth-switch-btn").textContent = "Войти";
+  } else {
+    document.getElementById("auth-title").textContent = "Вход";
+    document.getElementById("auth-submit").textContent = "Войти";
+    document.getElementById("auth-switch-text").textContent = "Нет аккаунта?";
+    document.getElementById("auth-switch-btn").textContent = "Зарегистрироваться";
+  }
+}
+
+document.getElementById("auth-switch-btn").addEventListener("click", () => {
+  setAuthMode(authMode === "login" ? "register" : "login");
+});
+
+document.getElementById("auth-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const nickname = document.getElementById("auth-nickname").value;
+  const password = document.getElementById("auth-password").value;
+  const submitBtn = document.getElementById("auth-submit");
+  const errorEl = document.getElementById("auth-error");
+
+  submitBtn.disabled = true;
+  errorEl.classList.add("hidden");
+  const error = await handleAuthSubmit(nickname, password);
+  submitBtn.disabled = false;
+
+  if (error) {
+    errorEl.textContent = error;
+    errorEl.classList.remove("hidden");
+  }
+});
+
+const savedSession = localStorage.getItem(SESSION_KEY);
+if (savedSession) {
+  const users = loadUsers();
+  const user = users[savedSession];
+  if (user) {
+    currentUser = user.nickname;
+    currentUserKey = savedSession;
+    loadProgress(savedSession);
+    showScreen("home");
+    renderHome();
+  } else {
+    showScreen("auth");
+  }
+} else {
+  showScreen("auth");
+}
