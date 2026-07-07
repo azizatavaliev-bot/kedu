@@ -260,6 +260,30 @@ function singleCharacters() {
   return WORDS.filter((w) => Array.from(w.hanzi).length === 1);
 }
 
+// ---------- Тоны ----------
+
+const TONE_MARKS = {
+  1: "āēīōūǖ",
+  2: "áéíóúǘ",
+  3: "ǎěǐǒǔǚ",
+  4: "àèìòùǜ",
+};
+const TONE_SYMBOLS = { 1: "ā", 2: "á", 3: "ǎ", 4: "à" };
+const TONE_LABELS = { 1: "1-й тон", 2: "2-й тон", 3: "3-й тон", 4: "4-й тон" };
+
+function toneOf(pinyin) {
+  for (const ch of pinyin) {
+    for (const tone of [1, 2, 3, 4]) {
+      if (TONE_MARKS[tone].includes(ch)) return tone;
+    }
+  }
+  return null; // нейтральный тон (без диакритики) — не участвует в тренировке тонов
+}
+
+function toneableCharacters() {
+  return singleCharacters().filter((w) => toneOf(w.pinyin) !== null);
+}
+
 // ---------- Экраны ----------
 
 function showScreen(name) {
@@ -403,6 +427,14 @@ function startCharacters() {
   renderQuestion();
 }
 
+function startTones() {
+  const words = toneableCharacters();
+  const queue = shuffle(words).map((w) => ({ ...w, qType: "tone", tone: toneOf(w.pinyin) }));
+  session = { queue, index: 0, correct: 0, wrong: 0, hearts: START_HEARTS, xpEarned: 0, mode: "tones" };
+  showScreen("lesson");
+  renderQuestion();
+}
+
 function renderQuestion() {
   document.getElementById("feedback").classList.add("hidden");
   refreshHeader();
@@ -414,6 +446,28 @@ function renderQuestion() {
   const label = document.getElementById("q-prompt-label");
   const main = document.getElementById("q-prompt-main");
   const speakBtn = document.getElementById("btn-speak");
+  const radicalHint = document.getElementById("radical-hint");
+  radicalHint.classList.add("hidden");
+
+  if (word.qType === "tone") {
+    label.textContent = "Какой это тон?";
+    main.innerHTML = `${word.hanzi}<br><span class="prompt-main small">${word.pinyin}</span>`;
+    speakBtn.classList.remove("hidden");
+    speak(word.hanzi);
+    speakBtn.onclick = () => speak(word.hanzi);
+
+    const optionsEl = document.getElementById("q-options");
+    optionsEl.innerHTML = "";
+    [1, 2, 3, 4].forEach((tone) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.dataset.optionId = tone;
+      btn.innerHTML = `${TONE_SYMBOLS[tone]} <span style="font-size:12px;color:#999">${TONE_LABELS[tone]}</span>`;
+      btn.addEventListener("click", () => checkAnswer(btn, word, word.tone, tone === word.tone));
+      optionsEl.appendChild(btn);
+    });
+    return;
+  }
 
   const poolBase = session.mode === "lesson" ? WORDS.filter((w) => w.lesson === word.lesson) : session.mode === "chars" ? singleCharacters() : WORDS;
   const pool = poolBase.filter((w) => w.id !== word.id);
@@ -426,6 +480,12 @@ function renderQuestion() {
     optionRenderer = (w) => w.ru;
     speakBtn.classList.remove("hidden");
     speak(word.hanzi);
+
+    const radical = session.mode === "chars" ? RADICALS[word.hanzi] : null;
+    if (radical) {
+      radicalHint.innerHTML = `Состав: <b>${radical.parts}</b> — ${radical.note}`;
+      radicalHint.classList.remove("hidden");
+    }
   } else {
     label.textContent = "Как будет по-китайски?";
     main.textContent = word.ru;
@@ -447,14 +507,14 @@ function renderQuestion() {
     btn.className = "option-btn";
     btn.dataset.optionId = opt.id;
     btn.innerHTML = optionRenderer(opt);
-    btn.addEventListener("click", () => checkAnswer(btn, word, opt.id === word.id));
+    btn.addEventListener("click", () => checkAnswer(btn, word, word.id, opt.id === word.id));
     optionsEl.appendChild(btn);
   });
 
   speakBtn.onclick = () => speak(word.hanzi);
 }
 
-function checkAnswer(btn, word, isCorrect) {
+function checkAnswer(btn, word, correctOptionId, isCorrect) {
   document.querySelectorAll(".option-btn").forEach((b) => (b.disabled = true));
 
   if (isCorrect) {
@@ -467,7 +527,7 @@ function checkAnswer(btn, word, isCorrect) {
     btn.classList.add("wrong");
     session.wrong++;
     session.hearts--;
-    document.querySelector(`.option-btn[data-option-id="${word.id}"]`)?.classList.add("correct");
+    document.querySelector(`.option-btn[data-option-id="${correctOptionId}"]`)?.classList.add("correct");
     playSound("wrong");
   }
 
@@ -478,9 +538,13 @@ function checkAnswer(btn, word, isCorrect) {
   const feedback = document.getElementById("feedback");
   feedback.classList.remove("hidden", "correct", "wrong");
   feedback.classList.add(isCorrect ? "correct" : "wrong");
+  let correctAnswerText = word.hanzi;
+  if (word.qType === "toRu") correctAnswerText = word.ru;
+  else if (word.qType === "tone") correctAnswerText = TONE_LABELS[word.tone];
+
   document.getElementById("feedback-text").textContent = isCorrect
     ? `Верно! +${XP_PER_CORRECT} XP`
-    : `Неверно. Правильный ответ: ${word.qType === "toRu" ? word.ru : word.hanzi}`;
+    : `Неверно. Правильный ответ: ${correctAnswerText}`;
 }
 
 function onContinue() {
@@ -498,7 +562,7 @@ function onContinue() {
 
 function finishSession(failed) {
   if (!failed) {
-    if (session.mode === "lesson" || session.mode === "chars") {
+    if (session.mode === "lesson" || session.mode === "chars" || session.mode === "tones") {
       session.xpEarned += XP_LESSON_BONUS;
       progress.xp += XP_LESSON_BONUS;
     }
@@ -524,6 +588,7 @@ function finishSession(failed) {
 
 document.getElementById("btn-review").addEventListener("click", startReview);
 document.getElementById("btn-chars").addEventListener("click", startCharacters);
+document.getElementById("btn-tones").addEventListener("click", startTones);
 document.getElementById("btn-continue").addEventListener("click", onContinue);
 document.getElementById("btn-home").addEventListener("click", () => {
   session = null;
