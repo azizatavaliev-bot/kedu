@@ -63,6 +63,9 @@ body {
 .review-title { font-weight: 800; font-size: 17px; }
 .review-sub { font-size: 13px; color: var(--grey); }
 
+.chars-card { background: var(--black); color: var(--white); }
+.chars-card .review-sub { color: #bbb; }
+
 .lesson-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));

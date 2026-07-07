@@ -85,6 +85,10 @@ function dueWords() {
   });
 }
 
+function singleCharacters() {
+  return WORDS.filter((w) => Array.from(w.hanzi).length === 1);
+}
+
 // ---------- Экраны ----------
 
 function showScreen(name) {
@@ -112,6 +116,10 @@ function renderHome() {
   } else {
     reviewCard.classList.add("hidden");
   }
+
+  const chars = singleCharacters();
+  const charsLearned = chars.filter((w) => (progress.wordProgress[w.id]?.box ?? 0) >= 3).length;
+  document.getElementById("chars-progress").textContent = `${charsLearned}/${chars.length}`;
 
   const grid = document.getElementById("lesson-grid");
   grid.innerHTML = "";
@@ -154,6 +162,13 @@ function startReview() {
   renderQuestion();
 }
 
+function startCharacters() {
+  const words = singleCharacters();
+  session = { queue: buildQueue(words), index: 0, correct: 0, wrong: 0, hearts: START_HEARTS, xpEarned: 0, mode: "chars" };
+  showScreen("lesson");
+  renderQuestion();
+}
+
 function renderQuestion() {
   document.getElementById("feedback").classList.add("hidden");
   refreshHeader();
@@ -166,7 +181,8 @@ function renderQuestion() {
   const main = document.getElementById("q-prompt-main");
   const speakBtn = document.getElementById("btn-speak");
 
-  const pool = (session.mode === "lesson" ? WORDS.filter((w) => w.lesson === word.lesson) : WORDS).filter((w) => w.id !== word.id);
+  const poolBase = session.mode === "lesson" ? WORDS.filter((w) => w.lesson === word.lesson) : session.mode === "chars" ? singleCharacters() : WORDS;
+  const pool = poolBase.filter((w) => w.id !== word.id);
 
   let distractorField, optionRenderer;
   if (word.qType === "toRu") {
@@ -246,7 +262,7 @@ function onContinue() {
 
 function finishSession(failed) {
   if (!failed) {
-    if (session.mode === "lesson") {
+    if (session.mode === "lesson" || session.mode === "chars") {
       session.xpEarned += XP_LESSON_BONUS;
       progress.xp += XP_LESSON_BONUS;
     }
@@ -267,6 +283,7 @@ function finishSession(failed) {
 // ---------- Инициализация ----------
 
 document.getElementById("btn-review").addEventListener("click", startReview);
+document.getElementById("btn-chars").addEventListener("click", startCharacters);
 document.getElementById("btn-continue").addEventListener("click", onContinue);
 document.getElementById("btn-home").addEventListener("click", () => {
   session = null;
