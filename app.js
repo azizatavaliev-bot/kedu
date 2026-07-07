@@ -236,10 +236,38 @@ function showScreen(name) {
   }
 }
 
+let lastXpShown = null;
+
 function refreshHeader() {
   document.getElementById("stat-streak").textContent = progress.streak;
   document.getElementById("stat-xp").textContent = progress.xp;
   if (session) document.getElementById("stat-lives").textContent = session.hearts;
+
+  document.getElementById("stat-streak-wrap").classList.toggle("streak-active", progress.streak > 0);
+
+  if (lastXpShown !== null && progress.xp > lastXpShown) {
+    const xpWrap = document.getElementById("stat-xp-wrap");
+    xpWrap.classList.remove("pop");
+    void xpWrap.offsetWidth; // рестарт CSS-анимации
+    xpWrap.classList.add("pop");
+  }
+  lastXpShown = progress.xp;
+}
+
+function launchConfetti() {
+  const colors = ["#FFC800", "#58A700", "#1CB0F6", "#FF4B4B", "#1A1A1A"];
+  const container = document.getElementById("confetti");
+  container.innerHTML = "";
+  for (let i = 0; i < 32; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDuration = `${1.2 + Math.random() * 0.8}s`;
+    piece.style.animationDelay = `${Math.random() * 0.3}s`;
+    container.appendChild(piece);
+  }
+  setTimeout(() => { container.innerHTML = ""; }, 2200);
 }
 
 // ---------- Главная: карта уроков ----------
@@ -270,6 +298,7 @@ function renderHome() {
     const node = document.createElement("div");
     node.className = "lesson-node" + (pct === 100 ? " mastered" : "");
     node.innerHTML = `
+      ${pct === 100 ? '<div class="lesson-badge">✓</div>' : ""}
       <div class="lesson-icon">${lesson.icon}</div>
       <div class="lesson-title">${lesson.title}</div>
       <div class="lesson-progress"><div class="lesson-progress-fill" style="width:${pct}%"></div></div>
@@ -446,6 +475,7 @@ function finishSession(failed) {
 
   showScreen("result");
   refreshHeader();
+  if (!failed) launchConfetti();
 }
 
 // ---------- Инициализация ----------

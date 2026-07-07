@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Кеду — учи китайский</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,8 +14,8 @@
 <header class="topbar" id="topbar">
   <div class="logo">课度 <span>Кеду</span></div>
   <div class="stats">
-    <div class="stat" title="Дней подряд">🔥 <span id="stat-streak">0</span></div>
-    <div class="stat" title="Опыт">⭐ <span id="stat-xp">0</span></div>
+    <div class="stat" id="stat-streak-wrap" title="Дней подряд"><span class="stat-icon">🔥</span> <span id="stat-streak">0</span></div>
+    <div class="stat" id="stat-xp-wrap" title="Опыт"><span class="stat-icon">⭐</span> <span id="stat-xp">0</span></div>
     <div class="stat hearts" id="stat-hearts" title="Жизни">❤️ <span id="stat-lives">5</span></div>
     <button id="btn-sound" class="btn-sound" title="Звук">🔊</button>
   </div>
@@ -127,6 +130,7 @@
       </div>
       <button id="btn-home" class="btn btn-yellow">На главную</button>
     </div>
+    <div id="confetti" class="confetti"></div>
   </section>
 
 </main>
