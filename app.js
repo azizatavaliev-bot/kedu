@@ -47,7 +47,7 @@ if ("speechSynthesis" in window) {
   window.speechSynthesis.onvoiceschanged = refreshVoices;
 }
 
-const PREFERRED_ZH_VOICES = ["tingting", "meijia", "yaoyao", "xiaoxiao"]; // системные голоса с наиболее чёткой дикцией
+const PREFERRED_ZH_VOICES = ["tingting", "meijia", "yaoyao", "xiaoxiao", "huihui", "yunxi", "yunyang"]; // системные голоса с наиболее чёткой дикцией (macOS/Windows/Edge)
 
 function pickChineseVoice() {
   const zhCN = cachedVoices.filter((v) => v.lang === "zh-CN");
