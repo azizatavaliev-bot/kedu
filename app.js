@@ -463,7 +463,12 @@ function startLesson(lessonId) {
 function startReview() {
   const pool = dueWords();
   if (pool.length === 0) return;
-  const words = sample(pool, Math.min(pool.length, SESSION_CAP));
+  // Сначала самые просроченные слова, а не случайные — это эффективнее для SRS
+  const prioritized = pool
+    .slice()
+    .sort((a, b) => progress.wordProgress[a.id].due.localeCompare(progress.wordProgress[b.id].due))
+    .slice(0, SESSION_CAP);
+  const words = shuffle(prioritized);
   session = { queue: buildQueue(words), index: 0, correct: 0, wrong: 0, hearts: START_HEARTS, xpEarned: 0, mode: "review" };
   showScreen("lesson");
   renderQuestion();
@@ -547,10 +552,15 @@ function renderQuestion() {
     speakBtn.classList.add("hidden");
   }
 
-  const distractors = sample(
-    pool.filter((w, i, arr) => arr.findIndex((x) => x[distractorField] === w[distractorField]) === i),
-    3
-  );
+  const uniqueBy = (arr) => arr.filter((w, i, a) => a.findIndex((x) => x[distractorField] === w[distractorField]) === i);
+  let distractors = sample(uniqueBy(pool), 3);
+  if (distractors.length < 3) {
+    // Маленький урок (мало слов) — добираем недостающие варианты из всего словаря
+    const usedValues = new Set([word[distractorField], ...distractors.map((d) => d[distractorField])]);
+    const fallbackPool = WORDS.filter((w) => w.id !== word.id && !usedValues.has(w[distractorField]));
+    const extra = sample(uniqueBy(fallbackPool), 3 - distractors.length);
+    distractors = distractors.concat(extra);
+  }
   const options = shuffle([word, ...distractors]);
 
   const optionsEl = document.getElementById("q-options");
