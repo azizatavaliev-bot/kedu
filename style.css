@@ -282,6 +282,16 @@ body {
 .chars-card { border-left-color: var(--text); }
 .tones-card { border-left-color: var(--green); }
 
+.lesson-section { margin-bottom: 28px; }
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+.section-header h3 { font-size: 15px; font-weight: 700; margin: 0; }
+.section-progress { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; }
+
 .lesson-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));

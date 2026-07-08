@@ -354,24 +354,72 @@ function renderHome() {
   const charsLearned = chars.filter((w) => (progress.wordProgress[w.id]?.box ?? 0) >= 3).length;
   document.getElementById("chars-progress").textContent = `${charsLearned}/${chars.length}`;
 
-  const grid = document.getElementById("lesson-grid");
-  grid.innerHTML = "";
-  LESSONS.forEach((lesson) => {
-    const words = WORDS.filter((w) => w.lesson === lesson.id);
-    const learned = words.filter((w) => (progress.wordProgress[w.id]?.box ?? 0) >= 3).length;
-    const pct = Math.round((learned / words.length) * 100);
+  renderLessonSections();
+}
 
-    const node = document.createElement("div");
-    node.className = "lesson-node" + (pct === 100 ? " mastered" : "");
-    node.innerHTML = `
-      ${pct === 100 ? '<div class="lesson-badge">✓</div>' : ""}
-      <div class="lesson-icon">${lesson.icon}</div>
-      <div class="lesson-title">${lesson.title}</div>
-      <div class="lesson-progress"><div class="lesson-progress-fill" style="width:${pct}%"></div></div>
-      <div class="lesson-count">${learned}/${words.length}</div>
+const CATEGORY_TITLES = { themes: "📚 Темы" };
+(typeof HSK_CATEGORIES !== "undefined" ? HSK_CATEGORIES : []).forEach((c) => {
+  CATEGORY_TITLES[c.id] = c.title;
+});
+const CATEGORY_ORDER = ["themes", "hsk1", "hsk2", "hsk3", "hsk4"];
+
+function lessonNodeHtml(lesson) {
+  const words = WORDS.filter((w) => w.lesson === lesson.id);
+  const learned = words.filter((w) => (progress.wordProgress[w.id]?.box ?? 0) >= 3).length;
+  const pct = words.length ? Math.round((learned / words.length) * 100) : 0;
+  return {
+    pct,
+    learned,
+    total: words.length,
+    html: `
+      <div class="lesson-node${pct === 100 ? " mastered" : ""}" data-lesson-id="${lesson.id}">
+        ${pct === 100 ? '<div class="lesson-badge">✓</div>' : ""}
+        <div class="lesson-icon">${lesson.icon}</div>
+        <div class="lesson-title">${lesson.title}</div>
+        <div class="lesson-progress"><div class="lesson-progress-fill" style="width:${pct}%"></div></div>
+        <div class="lesson-count">${learned}/${words.length}</div>
+      </div>
+    `,
+  };
+}
+
+function renderLessonSections() {
+  const container = document.getElementById("lesson-sections");
+  container.innerHTML = "";
+
+  const byCategory = {};
+  LESSONS.forEach((l) => {
+    const cat = l.category || "themes";
+    (byCategory[cat] = byCategory[cat] || []).push(l);
+  });
+
+  CATEGORY_ORDER.filter((cat) => byCategory[cat]).forEach((cat) => {
+    const lessons = byCategory[cat];
+    let learnedTotal = 0;
+    let wordsTotal = 0;
+    const nodesHtml = lessons
+      .map((lesson) => {
+        const { pct, learned, total, html } = lessonNodeHtml(lesson);
+        learnedTotal += learned;
+        wordsTotal += total;
+        return html;
+      })
+      .join("");
+
+    const section = document.createElement("section");
+    section.className = "lesson-section";
+    section.innerHTML = `
+      <div class="section-header">
+        <h3>${CATEGORY_TITLES[cat] || cat}</h3>
+        <span class="section-progress">${learnedTotal}/${wordsTotal}</span>
+      </div>
+      <div class="lesson-grid">${nodesHtml}</div>
     `;
-    node.addEventListener("click", () => startLesson(lesson.id));
-    grid.appendChild(node);
+    container.appendChild(section);
+  });
+
+  container.querySelectorAll(".lesson-node").forEach((node) => {
+    node.addEventListener("click", () => startLesson(Number(node.dataset.lessonId)));
   });
 }
 
@@ -413,22 +461,27 @@ function startLesson(lessonId) {
 }
 
 function startReview() {
-  const words = dueWords();
-  if (words.length === 0) return;
+  const pool = dueWords();
+  if (pool.length === 0) return;
+  const words = sample(pool, Math.min(pool.length, SESSION_CAP));
   session = { queue: buildQueue(words), index: 0, correct: 0, wrong: 0, hearts: START_HEARTS, xpEarned: 0, mode: "review" };
   showScreen("lesson");
   renderQuestion();
 }
 
+const SESSION_CAP = 50; // чтобы сессия из тысяч иероглифов не превращалась в марафон
+
 function startCharacters() {
-  const words = singleCharacters();
+  const pool = singleCharacters();
+  const words = sample(pool, Math.min(pool.length, SESSION_CAP));
   session = { queue: buildQueue(words), index: 0, correct: 0, wrong: 0, hearts: START_HEARTS, xpEarned: 0, mode: "chars" };
   showScreen("lesson");
   renderQuestion();
 }
 
 function startTones() {
-  const words = toneableCharacters();
+  const pool = toneableCharacters();
+  const words = sample(pool, Math.min(pool.length, SESSION_CAP));
   const queue = shuffle(words).map((w) => ({ ...w, qType: "tone", tone: toneOf(w.pinyin) }));
   session = { queue, index: 0, correct: 0, wrong: 0, hearts: START_HEARTS, xpEarned: 0, mode: "tones" };
   showScreen("lesson");
