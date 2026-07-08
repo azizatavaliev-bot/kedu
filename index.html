@@ -99,10 +99,22 @@
   <!-- ЛИЧНЫЙ КАБИНЕТ -->
   <section id="screen-profile" class="screen">
     <div class="profile-header">
-      <div class="profile-avatar" id="profile-avatar">К</div>
+      <button class="profile-avatar" id="profile-avatar" title="Сменить аватар">К</button>
       <div>
         <div class="profile-name" id="profile-nickname">—</div>
         <div class="profile-level" id="profile-level">Уровень 1</div>
+      </div>
+    </div>
+
+    <div class="avatar-picker hidden" id="avatar-picker">
+      <div class="avatar-picker-panel">
+        <div class="avatar-picker-header">
+          <h3>Выбери аватар</h3>
+          <button class="btn-icon" id="btn-avatar-close" title="Закрыть">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+        <div class="avatar-grid" id="avatar-grid"></div>
       </div>
     </div>
 

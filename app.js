@@ -232,7 +232,35 @@ function logout() {
 // ---------- Прогресс (localStorage, отдельно на пользователя) ----------
 
 function defaultProgress() {
-  return { xp: 0, streak: 0, lastStudyDate: null, wordProgress: {}, dailyXp: 0, dailyDate: null };
+  return { xp: 0, streak: 0, lastStudyDate: null, wordProgress: {}, dailyXp: 0, dailyDate: null, avatar: null };
+}
+
+// ---------- Аватары ----------
+
+const AVATAR_OPTIONS = [
+  "🐼", "🐉", "🐲", "🏮", "🧧", "🎋", "🥟", "🥠", "🥮", "🍜",
+  "🥢", "🍵", "🀄", "🧨", "🎆", "🪭", "🪷", "🐯", "🐰", "🐍",
+  "🐴", "🐐", "🐒", "🐔", "🐶", "🐷", "🐭", "🐮", "🐟", "🌸",
+];
+
+function openAvatarPicker() {
+  const grid = document.getElementById("avatar-grid");
+  grid.innerHTML = AVATAR_OPTIONS.map(
+    (a) => `<button class="avatar-option${progress.avatar === a ? " selected" : ""}" data-avatar="${a}">${a}</button>`
+  ).join("");
+  grid.querySelectorAll(".avatar-option").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      progress.avatar = btn.dataset.avatar;
+      saveProgress();
+      renderProfile();
+      closeAvatarPicker();
+    });
+  });
+  document.getElementById("avatar-picker").classList.remove("hidden");
+}
+
+function closeAvatarPicker() {
+  document.getElementById("avatar-picker").classList.add("hidden");
 }
 
 const DAILY_GOAL_XP = 30;
@@ -493,7 +521,7 @@ function renderProfile() {
   const xpIntoLevel = progress.xp % XP_PER_LEVEL;
 
   document.getElementById("profile-nickname").textContent = currentUser;
-  document.getElementById("profile-avatar").textContent = currentUser.charAt(0).toUpperCase();
+  document.getElementById("profile-avatar").textContent = progress.avatar || currentUser.charAt(0).toUpperCase();
   document.getElementById("profile-level").textContent = `Уровень ${level}`;
   document.getElementById("level-xp-into").textContent = xpIntoLevel;
   document.getElementById("level-xp-total").textContent = XP_PER_LEVEL;
@@ -774,6 +802,11 @@ document.getElementById("btn-exit").addEventListener("click", () => {
 });
 
 document.getElementById("btn-logout").addEventListener("click", logout);
+document.getElementById("profile-avatar").addEventListener("click", openAvatarPicker);
+document.getElementById("btn-avatar-close").addEventListener("click", closeAvatarPicker);
+document.getElementById("avatar-picker").addEventListener("click", (e) => {
+  if (e.target.id === "avatar-picker") closeAvatarPicker();
+});
 document.getElementById("btn-sound").addEventListener("click", toggleSound);
 updateSoundButton();
 
