@@ -56,6 +56,19 @@
 
   <!-- ГЛАВНЫЙ ЭКРАН: карта уроков -->
   <section id="screen-home" class="screen">
+    <div id="daily-goal-card" class="daily-goal-card">
+      <div class="daily-goal-ring-wrap">
+        <svg class="daily-goal-ring" viewBox="0 0 64 64">
+          <circle class="daily-goal-ring-track" cx="32" cy="32" r="27" />
+          <circle class="daily-goal-ring-fill" id="daily-goal-ring-fill" cx="32" cy="32" r="27" />
+        </svg>
+        <span class="daily-goal-ring-icon" id="daily-goal-ring-icon">⭐</span>
+      </div>
+      <div>
+        <div class="review-title">Дневная цель</div>
+        <div class="review-sub" id="daily-goal-text">0/30 XP сегодня</div>
+      </div>
+    </div>
     <div id="review-card" class="review-card hidden">
       <div>
         <div class="review-title">🔁 Повторение</div>
@@ -116,6 +129,12 @@
         <div class="profile-stat-label">всего XP</div>
       </div>
     </div>
+
+    <div class="achievements-header">
+      <h3>Достижения</h3>
+      <span class="section-progress" id="achievements-count">0/0</span>
+    </div>
+    <div class="achievements-grid" id="achievements-grid"></div>
 
     <button id="btn-logout" class="btn btn-dark profile-logout btn-with-icon">
       <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg>

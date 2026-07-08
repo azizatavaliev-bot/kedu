@@ -232,7 +232,19 @@ function logout() {
 // ---------- Прогресс (localStorage, отдельно на пользователя) ----------
 
 function defaultProgress() {
-  return { xp: 0, streak: 0, lastStudyDate: null, wordProgress: {} };
+  return { xp: 0, streak: 0, lastStudyDate: null, wordProgress: {}, dailyXp: 0, dailyDate: null };
+}
+
+const DAILY_GOAL_XP = 30;
+
+function addXp(amount) {
+  const today = todayStr();
+  if (progress.dailyDate !== today) {
+    progress.dailyDate = today;
+    progress.dailyXp = 0;
+  }
+  progress.xp += amount;
+  progress.dailyXp += amount;
 }
 
 function progressKey(userKey) {
@@ -357,8 +369,22 @@ function launchConfetti() {
 
 // ---------- Главная: карта уроков ----------
 
+function renderDailyGoal() {
+  const today = todayStr();
+  const dailyXp = progress.dailyDate === today ? progress.dailyXp : 0;
+  const pct = Math.min(1, dailyXp / DAILY_GOAL_XP);
+  const circumference = 169.6;
+  const ring = document.getElementById("daily-goal-ring-fill");
+  ring.style.strokeDashoffset = String(circumference * (1 - pct));
+  ring.classList.toggle("goal-met", dailyXp >= DAILY_GOAL_XP);
+  document.getElementById("daily-goal-ring-icon").textContent = dailyXp >= DAILY_GOAL_XP ? "✓" : "⭐";
+  document.getElementById("daily-goal-text").textContent =
+    dailyXp >= DAILY_GOAL_XP ? `Цель дня выполнена! ${dailyXp} XP` : `${dailyXp}/${DAILY_GOAL_XP} XP сегодня`;
+}
+
 function renderHome() {
   refreshHeader();
+  renderDailyGoal();
 
   const due = dueWords();
   const reviewCard = document.getElementById("review-card");
@@ -464,6 +490,52 @@ function renderProfile() {
   document.getElementById("profile-chars").textContent = charsLearned;
   document.getElementById("profile-streak").textContent = progress.streak;
   document.getElementById("profile-xp").textContent = progress.xp;
+
+  renderAchievements(wordsLearned);
+}
+
+const CATEGORY_LABELS = { themes: "Темы", hsk1: "HSK 1", hsk2: "HSK 2", hsk3: "HSK 3", hsk4: "HSK 4", hsk5: "HSK 5", hsk6: "HSK 6" };
+
+function getAchievements(wordsLearned) {
+  const achievements = [];
+  [3, 7, 14, 30, 100].forEach((m) => {
+    achievements.push({ icon: "🔥", title: `Стрик ${m} ${pluralize(m, "день", "дня", "дней")}`, achieved: progress.streak >= m });
+  });
+  [50, 100, 250, 500, 1000, 2000].forEach((m) => {
+    achievements.push({ icon: "📚", title: `${m} слов выучено`, achieved: wordsLearned >= m });
+  });
+
+  const byCategory = {};
+  LESSONS.forEach((l) => {
+    const cat = l.category || "themes";
+    (byCategory[cat] = byCategory[cat] || []).push(l);
+  });
+  CATEGORY_ORDER.filter((cat) => byCategory[cat]).forEach((cat) => {
+    const allDone = byCategory[cat].every((l) => {
+      const words = WORDS.filter((w) => w.lesson === l.id);
+      const learned = words.filter((w) => (progress.wordProgress[w.id]?.box ?? 0) >= 3).length;
+      return words.length > 0 && learned === words.length;
+    });
+    achievements.push({ icon: "🏆", title: `${CATEGORY_LABELS[cat] || cat} пройден`, achieved: allDone });
+  });
+
+  return achievements;
+}
+
+function renderAchievements(wordsLearned) {
+  const achievements = getAchievements(wordsLearned);
+  const unlocked = achievements.filter((a) => a.achieved).length;
+  document.getElementById("achievements-count").textContent = `${unlocked}/${achievements.length}`;
+  document.getElementById("achievements-grid").innerHTML = achievements
+    .map(
+      (a) => `
+      <div class="achievement-badge${a.achieved ? " unlocked" : ""}">
+        <div class="achievement-icon">${a.icon}</div>
+        <div class="achievement-title">${a.title}</div>
+      </div>
+    `
+    )
+    .join("");
 }
 
 // ---------- Сессия карточек ----------
@@ -603,7 +675,7 @@ function checkAnswer(btn, word, correctOptionId, isCorrect) {
     btn.classList.add("correct");
     session.correct++;
     session.xpEarned += XP_PER_CORRECT;
-    progress.xp += XP_PER_CORRECT;
+    addXp(XP_PER_CORRECT);
     playSound("correct");
   } else {
     btn.classList.add("wrong");
@@ -646,7 +718,7 @@ function finishSession(failed) {
   if (!failed) {
     if (session.mode === "lesson" || session.mode === "chars" || session.mode === "tones") {
       session.xpEarned += XP_LESSON_BONUS;
-      progress.xp += XP_LESSON_BONUS;
+      addXp(XP_LESSON_BONUS);
     }
     updateStreakOnComplete();
     playSound("complete");
