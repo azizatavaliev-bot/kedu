@@ -40,6 +40,14 @@ function sample(arr, n) {
   return shuffle(arr).slice(0, n);
 }
 
+function pluralize(n, one, few, many) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+  return many;
+}
+
 let cachedVoices = [];
 if ("speechSynthesis" in window) {
   const refreshVoices = () => { cachedVoices = window.speechSynthesis.getVoices(); };
@@ -345,7 +353,7 @@ function renderHome() {
   const reviewCard = document.getElementById("review-card");
   if (due.length > 0) {
     reviewCard.classList.remove("hidden");
-    document.getElementById("review-count").textContent = due.length;
+    document.getElementById("review-sub").textContent = `${due.length} ${pluralize(due.length, "слово ждёт", "слова ждут", "слов ждут")} повторения`;
   } else {
     reviewCard.classList.add("hidden");
   }
