@@ -410,6 +410,53 @@ function renderDailyGoal() {
     dailyXp >= DAILY_GOAL_XP ? `Цель дня выполнена! ${dailyXp} XP` : `${dailyXp}/${DAILY_GOAL_XP} XP сегодня`;
 }
 
+const SEARCH_RESULTS_CAP = 20;
+
+function searchWords(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return WORDS.filter((w) => w.hanzi.includes(query.trim()) || w.pinyin.toLowerCase().includes(q) || w.ru.toLowerCase().includes(q)).slice(0, SEARCH_RESULTS_CAP);
+}
+
+function renderSearchResults(query) {
+  const resultsEl = document.getElementById("search-results");
+  if (!query.trim()) {
+    resultsEl.classList.add("hidden");
+    resultsEl.innerHTML = "";
+    return;
+  }
+  const matches = searchWords(query);
+  const lessonTitle = (lessonId) => {
+    const lesson = LESSONS.find((l) => l.id === lessonId);
+    if (!lesson) return "";
+    return lesson.category === "themes" ? lesson.title : `${CATEGORY_LABELS[lesson.category] || ""} ${lesson.title}`;
+  };
+  resultsEl.innerHTML = matches.length
+    ? matches
+        .map(
+          (w) => `
+      <div class="search-result-item" data-lesson-id="${w.lesson}">
+        <div class="search-result-main">
+          <span class="search-result-hanzi">${w.hanzi}</span>
+          <span class="search-result-pinyin">${w.pinyin}</span>
+          <span class="search-result-ru">${w.ru}</span>
+        </div>
+        <span class="search-result-lesson">${lessonTitle(w.lesson)}</span>
+      </div>
+    `
+        )
+        .join("")
+    : `<div class="search-empty">Ничего не найдено</div>`;
+  resultsEl.querySelectorAll(".search-result-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      document.getElementById("word-search").value = "";
+      resultsEl.classList.add("hidden");
+      startLesson(Number(item.dataset.lessonId));
+    });
+  });
+  resultsEl.classList.remove("hidden");
+}
+
 function renderHome() {
   refreshHeader();
   renderDailyGoal();
@@ -458,6 +505,7 @@ function lessonNodeHtml(lesson) {
 
 const COLLAPSE_THRESHOLD = 8;
 const expandedCategories = new Set();
+const openCategories = new Set(["themes"]); // по умолчанию открыта только «Темы» — иначе главная слишком длинная
 
 function renderLessonSections() {
   const container = document.getElementById("lesson-sections");
@@ -480,6 +528,7 @@ function renderLessonSections() {
       wordsTotal += words.length;
     });
 
+    const isOpen = openCategories.has(cat);
     const isCollapsible = lessons.length > COLLAPSE_THRESHOLD;
     const isExpanded = expandedCategories.has(cat) || !isCollapsible;
     const visibleLessons = isExpanded ? lessons : lessons.slice(0, COLLAPSE_THRESHOLD);
@@ -488,12 +537,15 @@ function renderLessonSections() {
     const section = document.createElement("section");
     section.className = "lesson-section";
     section.innerHTML = `
-      <div class="section-header">
+      <div class="section-header section-header-toggle" data-category="${cat}">
         <h3>${CATEGORY_TITLES[cat] || cat}</h3>
-        <span class="section-progress">${learnedTotal}/${wordsTotal}</span>
+        <div class="section-header-right">
+          <span class="section-progress">${learnedTotal}/${wordsTotal}</span>
+          <svg class="section-chevron${isOpen ? " open" : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+        </div>
       </div>
-      <div class="lesson-grid">${nodesHtml}</div>
-      ${isCollapsible ? `<button class="section-toggle" data-category="${cat}">${isExpanded ? "Свернуть" : `Показать все (${lessons.length})`}</button>` : ""}
+      ${isOpen ? `<div class="lesson-grid">${nodesHtml}</div>` : ""}
+      ${isOpen && isCollapsible ? `<button class="section-toggle" data-category="${cat}">${isExpanded ? "Свернуть список" : `Показать все (${lessons.length})`}</button>` : ""}
     `;
     container.appendChild(section);
   });
@@ -502,8 +554,18 @@ function renderLessonSections() {
     node.addEventListener("click", () => startLesson(Number(node.dataset.lessonId)));
   });
 
+  container.querySelectorAll(".section-header-toggle").forEach((header) => {
+    header.addEventListener("click", () => {
+      const cat = header.dataset.category;
+      if (openCategories.has(cat)) openCategories.delete(cat);
+      else openCategories.add(cat);
+      renderLessonSections();
+    });
+  });
+
   container.querySelectorAll(".section-toggle").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
       const cat = btn.dataset.category;
       if (expandedCategories.has(cat)) expandedCategories.delete(cat);
       else expandedCategories.add(cat);
@@ -804,6 +866,12 @@ document.getElementById("btn-exit").addEventListener("click", () => {
 document.getElementById("btn-logout").addEventListener("click", logout);
 document.getElementById("profile-avatar").addEventListener("click", openAvatarPicker);
 document.getElementById("btn-avatar-close").addEventListener("click", closeAvatarPicker);
+
+document.getElementById("word-search").addEventListener("input", (e) => renderSearchResults(e.target.value));
+document.addEventListener("click", (e) => {
+  const wrap = document.querySelector(".search-wrap");
+  if (wrap && !wrap.contains(e.target)) document.getElementById("search-results").classList.add("hidden");
+});
 document.getElementById("avatar-picker").addEventListener("click", (e) => {
   if (e.target.id === "avatar-picker") closeAvatarPicker();
 });

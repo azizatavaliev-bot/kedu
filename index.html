@@ -56,6 +56,11 @@
 
   <!-- ГЛАВНЫЙ ЭКРАН: карта уроков -->
   <section id="screen-home" class="screen">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+      <input id="word-search" class="search-input" type="text" placeholder="Найти слово: иероглиф, пиньинь или перевод" autocomplete="off">
+      <div id="search-results" class="search-results hidden"></div>
+    </div>
     <div id="daily-goal-card" class="daily-goal-card">
       <div class="daily-goal-ring-wrap">
         <svg class="daily-goal-ring" viewBox="0 0 64 64">
