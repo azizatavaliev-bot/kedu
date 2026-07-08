@@ -96,6 +96,21 @@ body {
 .stat { display: flex; align-items: center; gap: 4px; transition: transform 0.2s ease; }
 .stat.pop { animation: popIn 0.3s ease; }
 .stat.streak-active .stat-icon { display: inline-block; animation: pulse 1.8s ease-in-out infinite; }
+.stat-freeze { font-size: 11px; margin-left: 2px; opacity: 0.9; }
+.stat-freeze.hidden { display: none; }
+
+.freeze-banner {
+  background: color-mix(in srgb, var(--yellow) 15%, var(--surface));
+  border: 1px solid var(--yellow);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 14px;
+  animation: popIn 0.25s ease;
+}
+.freeze-banner.hidden { display: none; }
 
 .btn-sound,
 .btn-theme {
@@ -314,6 +329,7 @@ body {
 }
 .profile-stat-value { font-size: 26px; font-weight: 700; color: var(--text); transition: transform 0.2s ease; }
 .profile-stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 4px; }
+.profile-stat-sub { font-size: 10.5px; color: var(--text-secondary); margin-top: 4px; opacity: 0.8; }
 
 .achievements-header {
   display: flex;

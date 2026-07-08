@@ -23,7 +23,7 @@
 <header class="topbar" id="topbar">
   <div class="logo">课度 <span>Кеду</span></div>
   <div class="stats">
-    <div class="stat" id="stat-streak-wrap" title="Дней подряд"><span class="stat-icon">🔥</span> <span id="stat-streak">0</span></div>
+    <div class="stat" id="stat-streak-wrap" title="Дней подряд"><span class="stat-icon">🔥</span> <span id="stat-streak">0</span><span class="stat-freeze hidden" id="stat-freeze">🛡️0</span></div>
     <div class="stat" id="stat-xp-wrap" title="Опыт"><span class="stat-icon">⭐</span> <span id="stat-xp">0</span></div>
     <div class="stat hearts" id="stat-hearts" title="Жизни">❤️ <span id="stat-lives">5</span></div>
     <button id="btn-sound" class="btn-sound" title="Звук"></button>
@@ -56,6 +56,9 @@
 
   <!-- ГЛАВНЫЙ ЭКРАН: карта уроков -->
   <section id="screen-home" class="screen">
+    <div id="freeze-banner" class="freeze-banner hidden">
+      🛡️ Заморозка спасла твой стрик — пропущенный день не в счёт!
+    </div>
     <div class="search-wrap">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
       <input id="word-search" class="search-input" type="text" placeholder="Найти слово: иероглиф, пиньинь или перевод" autocomplete="off">
@@ -140,6 +143,7 @@
       <div class="profile-stat-card">
         <div class="profile-stat-value" id="profile-streak">0</div>
         <div class="profile-stat-label">дней подряд</div>
+        <div class="profile-stat-sub" id="profile-freezes">🛡️ 0 заморозок</div>
       </div>
       <div class="profile-stat-card">
         <div class="profile-stat-value" id="profile-xp">0</div>

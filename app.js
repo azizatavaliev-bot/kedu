@@ -232,8 +232,10 @@ function logout() {
 // ---------- Прогресс (localStorage, отдельно на пользователя) ----------
 
 function defaultProgress() {
-  return { xp: 0, streak: 0, lastStudyDate: null, wordProgress: {}, dailyXp: 0, dailyDate: null, avatar: null };
+  return { xp: 0, streak: 0, lastStudyDate: null, wordProgress: {}, dailyXp: 0, dailyDate: null, avatar: null, streakFreezes: 1, streakFreezeUsed: false };
 }
+
+const MAX_STREAK_FREEZES = 3;
 
 // ---------- Аватары ----------
 
@@ -296,7 +298,25 @@ function updateStreakOnComplete() {
   const today = todayStr();
   if (progress.lastStudyDate === today) return;
   const yesterday = addDaysStr(today, -1);
-  progress.streak = progress.lastStudyDate === yesterday ? progress.streak + 1 : 1;
+  const twoDaysAgo = addDaysStr(today, -2);
+  const freezesAvailable = progress.streakFreezes ?? 0;
+
+  if (progress.lastStudyDate === yesterday) {
+    progress.streak += 1;
+  } else if (progress.lastStudyDate === twoDaysAgo && freezesAvailable > 0) {
+    // Пропустили один день, но заморозка спасает стрик
+    progress.streakFreezes = freezesAvailable - 1;
+    progress.streak += 1;
+    progress.streakFreezeUsed = true;
+  } else {
+    progress.streak = 1;
+  }
+
+  // Каждая полная неделя подряд — новая заморозка про запас
+  if (progress.streak > 0 && progress.streak % 7 === 0) {
+    progress.streakFreezes = Math.min(MAX_STREAK_FREEZES, (progress.streakFreezes ?? 0) + 1);
+  }
+
   progress.lastStudyDate = today;
 }
 
@@ -369,6 +389,12 @@ function refreshHeader() {
   if (session) document.getElementById("stat-lives").textContent = session.hearts;
 
   document.getElementById("stat-streak-wrap").classList.toggle("streak-active", progress.streak > 0);
+
+  const freezes = progress.streakFreezes ?? 0;
+  const freezeEl = document.getElementById("stat-freeze");
+  freezeEl.classList.toggle("hidden", freezes === 0);
+  freezeEl.textContent = `🛡️${freezes}`;
+  document.getElementById("stat-streak-wrap").title = `Дней подряд: ${progress.streak}. Заморозок стрика в запасе: ${freezes} (спасают стрик, если пропустишь день)`;
 
   if (lastXpShown !== null && progress.xp > lastXpShown) {
     const xpWrap = document.getElementById("stat-xp-wrap");
@@ -460,6 +486,15 @@ function renderSearchResults(query) {
 function renderHome() {
   refreshHeader();
   renderDailyGoal();
+
+  const freezeBanner = document.getElementById("freeze-banner");
+  if (progress.streakFreezeUsed) {
+    freezeBanner.classList.remove("hidden");
+    progress.streakFreezeUsed = false;
+    saveProgress();
+  } else {
+    freezeBanner.classList.add("hidden");
+  }
 
   const due = dueWords();
   const reviewCard = document.getElementById("review-card");
@@ -595,6 +630,8 @@ function renderProfile() {
   document.getElementById("profile-words").textContent = wordsLearned;
   document.getElementById("profile-chars").textContent = charsLearned;
   document.getElementById("profile-streak").textContent = progress.streak;
+  const freezes = progress.streakFreezes ?? 0;
+  document.getElementById("profile-freezes").textContent = `🛡️ ${freezes} ${pluralize(freezes, "заморозка", "заморозки", "заморозок")}`;
   document.getElementById("profile-xp").textContent = progress.xp;
 
   renderAchievements(wordsLearned);
