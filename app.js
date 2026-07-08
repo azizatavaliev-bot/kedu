@@ -361,7 +361,7 @@ const CATEGORY_TITLES = { themes: "📚 Темы" };
 (typeof HSK_CATEGORIES !== "undefined" ? HSK_CATEGORIES : []).forEach((c) => {
   CATEGORY_TITLES[c.id] = c.title;
 });
-const CATEGORY_ORDER = ["themes", "hsk1", "hsk2", "hsk3", "hsk4"];
+const CATEGORY_ORDER = ["themes", "hsk1", "hsk2", "hsk3", "hsk4", "hsk5", "hsk6"];
 
 function lessonNodeHtml(lesson) {
   const words = WORDS.filter((w) => w.lesson === lesson.id);
