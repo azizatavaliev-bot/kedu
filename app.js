@@ -217,6 +217,7 @@ async function handleAuthSubmit(nickname, password) {
   loadProgress(key);
   showScreen("home");
   renderHome();
+  syncToLeaderboard();
   return null;
 }
 
@@ -256,6 +257,7 @@ function openAvatarPicker() {
       saveProgress();
       renderProfile();
       closeAvatarPicker();
+      syncToLeaderboard();
     });
   });
   document.getElementById("avatar-picker").classList.remove("hidden");
@@ -373,10 +375,11 @@ function showScreen(name) {
   document.getElementById("topbar").classList.toggle("hidden", name === "auth");
 
   const bottomNav = document.getElementById("bottom-nav");
-  const showNav = name === "home" || name === "profile";
+  const showNav = name === "home" || name === "profile" || name === "leaderboard";
   bottomNav.classList.toggle("hidden", !showNav);
   if (showNav) {
     document.getElementById("nav-home").classList.toggle("active", name === "home");
+    document.getElementById("nav-leaderboard").classList.toggle("active", name === "leaderboard");
     document.getElementById("nav-profile").classList.toggle("active", name === "profile");
   }
 }
@@ -681,6 +684,75 @@ function renderAchievements(wordsLearned) {
     .join("");
 }
 
+// ---------- Лидерборд (Supabase) ----------
+
+const SUPABASE_URL = "https://bdhhgjagcbgzjolzzkrf.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkaGhnamFnY2JnempvbHp6a3JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MzUwMjUsImV4cCI6MjA5OTExMTAyNX0.EttSjMR7zMyud1fjCWsxK-vYQgAaHjlZ0bfhkrTuMU0";
+
+async function syncToLeaderboard() {
+  if (!currentUserKey || !progress) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify([
+        {
+          user_key: currentUserKey,
+          nickname: currentUser,
+          avatar: progress.avatar || null,
+          streak: progress.streak,
+          xp: progress.xp,
+          updated_at: new Date().toISOString(),
+        },
+      ]),
+    });
+  } catch (e) {
+    // Нет сети или Supabase недоступен — лидерборд просто не обновится в этот раз
+  }
+}
+
+async function renderLeaderboard() {
+  const listEl = document.getElementById("leaderboard-list");
+  listEl.innerHTML = `<div class="search-empty">Загрузка...</div>`;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leaderboard?select=user_key,nickname,avatar,streak,xp&order=streak.desc,xp.desc&limit=50`,
+      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    if (!res.ok) throw new Error("bad response");
+    const rows = await res.json();
+    if (rows.length === 0) {
+      listEl.innerHTML = `<div class="search-empty">Пока никого нет. Стань первым!</div>`;
+      return;
+    }
+    listEl.innerHTML = rows
+      .map((row, i) => {
+        const rank = i + 1;
+        const rankClass = rank === 1 ? "top1" : rank === 2 ? "top2" : rank === 3 ? "top3" : "";
+        const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+        const isMe = row.user_key === currentUserKey;
+        return `
+        <div class="leaderboard-row${isMe ? " is-me" : ""}">
+          <div class="leaderboard-rank ${rankClass}">${medal}</div>
+          <div class="leaderboard-avatar">${row.avatar || row.nickname.charAt(0).toUpperCase()}</div>
+          <div class="leaderboard-name">${row.nickname}${isMe ? " (ты)" : ""}</div>
+          <div class="leaderboard-streak">🔥 ${row.streak}</div>
+          <div class="leaderboard-xp">${row.xp} XP</div>
+        </div>
+      `;
+      })
+      .join("");
+  } catch (e) {
+    listEl.innerHTML = `<div class="search-empty">Не удалось загрузить лидерборд. Проверь соединение.</div>`;
+  }
+}
+
 // ---------- Сессия карточек ----------
 
 function buildQueue(words) {
@@ -879,6 +951,7 @@ function finishSession(failed) {
   showScreen("result");
   refreshHeader();
   if (!failed) launchConfetti();
+  syncToLeaderboard();
 }
 
 // ---------- Инициализация ----------
@@ -927,6 +1000,10 @@ document.getElementById("nav-home").addEventListener("click", () => {
 document.getElementById("nav-profile").addEventListener("click", () => {
   showScreen("profile");
   renderProfile();
+});
+document.getElementById("nav-leaderboard").addEventListener("click", () => {
+  showScreen("leaderboard");
+  renderLeaderboard();
 });
 
 function setAuthMode(mode) {

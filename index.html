@@ -104,6 +104,17 @@
     <div id="lesson-sections"></div>
   </section>
 
+  <!-- ЛИДЕРБОРД -->
+  <section id="screen-leaderboard" class="screen">
+    <div class="leaderboard-header">
+      <h2>Топ учеников</h2>
+      <div class="leaderboard-sub">Рейтинг по стрику дней подряд</div>
+    </div>
+    <div id="leaderboard-list" class="leaderboard-list">
+      <div class="search-empty">Загрузка...</div>
+    </div>
+  </section>
+
   <!-- ЛИЧНЫЙ КАБИНЕТ -->
   <section id="screen-profile" class="screen">
     <div class="profile-header">
@@ -219,6 +230,15 @@
       </svg>
     </span>
     <span class="nav-label">Главная</span>
+  </button>
+  <button class="nav-btn" id="nav-leaderboard" data-target="leaderboard">
+    <span class="nav-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 21h8" /><path d="M12 17v4" /><path d="M7 4h10v6a5 5 0 0 1-10 0V4z" />
+        <path d="M7 6H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4" /><path d="M17 6h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4" />
+      </svg>
+    </span>
+    <span class="nav-label">Топ</span>
   </button>
   <button class="nav-btn" id="nav-profile" data-target="profile">
     <span class="nav-icon">
