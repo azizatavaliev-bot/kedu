@@ -428,6 +428,9 @@ function lessonNodeHtml(lesson) {
   };
 }
 
+const COLLAPSE_THRESHOLD = 8;
+const expandedCategories = new Set();
+
 function renderLessonSections() {
   const container = document.getElementById("lesson-sections");
   container.innerHTML = "";
@@ -442,14 +445,17 @@ function renderLessonSections() {
     const lessons = byCategory[cat];
     let learnedTotal = 0;
     let wordsTotal = 0;
-    const nodesHtml = lessons
-      .map((lesson) => {
-        const { pct, learned, total, html } = lessonNodeHtml(lesson);
-        learnedTotal += learned;
-        wordsTotal += total;
-        return html;
-      })
-      .join("");
+    // Считаем прогресс по ВСЕМ урокам категории, даже свёрнутым
+    lessons.forEach((lesson) => {
+      const words = WORDS.filter((w) => w.lesson === lesson.id);
+      learnedTotal += words.filter((w) => (progress.wordProgress[w.id]?.box ?? 0) >= 3).length;
+      wordsTotal += words.length;
+    });
+
+    const isCollapsible = lessons.length > COLLAPSE_THRESHOLD;
+    const isExpanded = expandedCategories.has(cat) || !isCollapsible;
+    const visibleLessons = isExpanded ? lessons : lessons.slice(0, COLLAPSE_THRESHOLD);
+    const nodesHtml = visibleLessons.map((lesson) => lessonNodeHtml(lesson).html).join("");
 
     const section = document.createElement("section");
     section.className = "lesson-section";
@@ -459,12 +465,22 @@ function renderLessonSections() {
         <span class="section-progress">${learnedTotal}/${wordsTotal}</span>
       </div>
       <div class="lesson-grid">${nodesHtml}</div>
+      ${isCollapsible ? `<button class="section-toggle" data-category="${cat}">${isExpanded ? "Свернуть" : `Показать все (${lessons.length})`}</button>` : ""}
     `;
     container.appendChild(section);
   });
 
   container.querySelectorAll(".lesson-node").forEach((node) => {
     node.addEventListener("click", () => startLesson(Number(node.dataset.lessonId)));
+  });
+
+  container.querySelectorAll(".section-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const cat = btn.dataset.category;
+      if (expandedCategories.has(cat)) expandedCategories.delete(cat);
+      else expandedCategories.add(cat);
+      renderLessonSections();
+    });
   });
 }
 
