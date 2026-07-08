@@ -1,0 +1,9 @@
+{
+  "name": "kedu",
+  "version": "1.0.0",
+  "description": "Кеду — приложение для изучения китайского языка",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve -s . -l ${PORT:-8765}"
+  }
+}
