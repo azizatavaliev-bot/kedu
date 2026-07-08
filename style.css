@@ -93,13 +93,17 @@ body {
 .btn-theme {
   background: none;
   border: none;
-  font-size: 16px;
   cursor: pointer;
   padding: 0;
   line-height: 1;
   opacity: 0.85;
+  color: var(--white);
+  display: flex;
+  align-items: center;
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
+.btn-sound svg,
+.btn-theme svg { width: 18px; height: 18px; }
 .btn-sound:active,
 .btn-theme:active { transform: scale(0.88); opacity: 1; }
 
@@ -352,11 +356,13 @@ body {
 .btn-icon {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
   color: var(--text-secondary);
+  display: flex;
+  align-items: center;
   transition: transform 0.15s ease, color 0.15s ease;
 }
+.btn-icon svg { width: 20px; height: 20px; }
 .btn-icon:active { transform: scale(0.88); }
 .progress-bar {
   flex: 1;
@@ -402,17 +408,22 @@ body {
   position: absolute;
   top: 14px;
   right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--track);
+  color: var(--text);
   border: none;
   border-radius: 50%;
   width: 38px;
   height: 38px;
-  font-size: 16px;
   cursor: pointer;
-  transition: transform 0.1s ease, background 0.15s ease;
+  transition: transform 0.1s ease, background 0.15s ease, color 0.15s ease;
 }
+.btn-speak svg { width: 18px; height: 18px; }
 .btn-speak:hover { background: var(--border); }
 .btn-speak:active { transform: scale(0.9); }
+.btn-speak.speaking { color: var(--yellow-dark); background: color-mix(in srgb, var(--yellow) 18%, var(--track)); animation: pulse 0.7s ease-in-out infinite; }
 
 .options {
   display: grid;
@@ -480,6 +491,8 @@ body {
   transition: transform 0.08s ease, opacity 0.15s ease;
 }
 .btn:active { transform: scale(0.96); }
+.btn-with-icon { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-icon-svg { width: 17px; height: 17px; flex-shrink: 0; }
 .btn-dark { background: var(--black); color: var(--white); }
 .btn-dark:hover { opacity: 0.92; }
 .btn-yellow { background: var(--yellow); color: var(--black); }

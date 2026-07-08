@@ -26,8 +26,8 @@
     <div class="stat" id="stat-streak-wrap" title="Дней подряд"><span class="stat-icon">🔥</span> <span id="stat-streak">0</span></div>
     <div class="stat" id="stat-xp-wrap" title="Опыт"><span class="stat-icon">⭐</span> <span id="stat-xp">0</span></div>
     <div class="stat hearts" id="stat-hearts" title="Жизни">❤️ <span id="stat-lives">5</span></div>
-    <button id="btn-sound" class="btn-sound" title="Звук">🔊</button>
-    <button id="btn-theme" class="btn-theme" title="Тема">🌙</button>
+    <button id="btn-sound" class="btn-sound" title="Звук"></button>
+    <button id="btn-theme" class="btn-theme" title="Тема"></button>
   </div>
 </header>
 
@@ -42,7 +42,10 @@
         <input id="auth-nickname" class="auth-input" type="text" placeholder="Никнейм" autocomplete="username" required>
         <input id="auth-password" class="auth-input" type="password" placeholder="Пароль" autocomplete="current-password" required>
         <div id="auth-error" class="auth-error hidden"></div>
-        <button type="submit" class="btn btn-yellow auth-submit" id="auth-submit">Войти</button>
+        <button type="submit" class="btn btn-yellow auth-submit btn-with-icon" id="auth-submit">
+          <span id="auth-submit-label">Войти</span>
+          <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+        </button>
       </form>
       <div class="auth-switch">
         <span id="auth-switch-text">Нет аккаунта?</span>
@@ -58,21 +61,24 @@
         <div class="review-title">🔁 Повторение</div>
         <div class="review-sub" id="review-sub"></div>
       </div>
-      <button id="btn-review" class="btn btn-dark">Повторить</button>
+      <button id="btn-review" class="btn btn-dark btn-with-icon">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>
+        Повторить
+      </button>
     </div>
     <div id="chars-card" class="review-card chars-card">
       <div>
         <div class="review-title">字 Иероглифы</div>
         <div class="review-sub"><span id="chars-progress">0/0</span> знаков выучено — отдельная тренировка чтения и значения</div>
       </div>
-      <button id="btn-chars" class="btn btn-yellow">Учить</button>
+      <button id="btn-chars" class="btn btn-yellow btn-with-icon"><svg class="btn-icon-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>Учить</button>
     </div>
     <div id="tones-card" class="review-card tones-card">
       <div>
         <div class="review-title">🎵 Тоны</div>
         <div class="review-sub">Тренировка распознавания тонов на слух — ключ к правильному произношению</div>
       </div>
-      <button id="btn-tones" class="btn btn-dark">Учить</button>
+      <button id="btn-tones" class="btn btn-dark btn-with-icon"><svg class="btn-icon-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>Учить</button>
     </div>
     <div id="lesson-sections"></div>
   </section>
@@ -111,13 +117,18 @@
       </div>
     </div>
 
-    <button id="btn-logout" class="btn btn-dark profile-logout">Выйти из аккаунта</button>
+    <button id="btn-logout" class="btn btn-dark profile-logout btn-with-icon">
+      <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg>
+      Выйти из аккаунта
+    </button>
   </section>
 
   <!-- ЭКРАН УРОКА / ПОВТОРЕНИЯ -->
   <section id="screen-lesson" class="screen">
     <div class="progress-bar-wrap">
-      <button id="btn-exit" class="btn-icon">✕</button>
+      <button id="btn-exit" class="btn-icon" title="Выйти из урока">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
       <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
     </div>
 
@@ -125,14 +136,17 @@
       <div class="prompt" id="q-prompt-label"></div>
       <div class="prompt-main" id="q-prompt-main"></div>
       <div class="radical-hint hidden" id="radical-hint"></div>
-      <button id="btn-speak" class="btn-speak" title="Озвучить">🔊</button>
+      <button id="btn-speak" class="btn-speak" title="Озвучить"></button>
     </div>
 
     <div class="options" id="q-options"></div>
 
     <div class="feedback hidden" id="feedback">
       <div id="feedback-text"></div>
-      <button id="btn-continue" class="btn btn-dark">Дальше</button>
+      <button id="btn-continue" class="btn btn-dark btn-with-icon">
+        Дальше
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </button>
     </div>
   </section>
 
@@ -146,7 +160,10 @@
         <div>❌ Ошибок: <span id="result-wrong">0</span></div>
         <div>⭐ Получено XP: <span id="result-xp">0</span></div>
       </div>
-      <button id="btn-home" class="btn btn-yellow">На главную</button>
+      <button id="btn-home" class="btn btn-yellow btn-with-icon">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5" /><path d="M5.5 10v9a1 1 0 0 0 1 1H9.5a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-9" /></svg>
+        На главную
+      </button>
     </div>
     <div id="confetti" class="confetti"></div>
   </section>
