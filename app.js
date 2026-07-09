@@ -204,6 +204,7 @@ async function handleAuthSubmit(nickname, password) {
 
   if (authMode === "register") {
     if (users[key]) return "Такой никнейм уже занят";
+    if (await nicknameTakenGlobally(key)) return "Такой никнейм уже занят другим учеником";
     users[key] = { nickname, passwordHash };
     saveUsers(users);
   } else {
@@ -689,6 +690,19 @@ function renderAchievements(wordsLearned) {
 const SUPABASE_URL = "https://bdhhgjagcbgzjolzzkrf.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkaGhnamFnY2JnempvbHp6a3JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MzUwMjUsImV4cCI6MjA5OTExMTAyNX0.EttSjMR7zMyud1fjCWsxK-vYQgAaHjlZ0bfhkrTuMU0";
+
+async function nicknameTakenGlobally(key) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?user_key=eq.${encodeURIComponent(key)}&select=user_key`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) return false; // при сбое сети не блокируем регистрацию
+    const rows = await res.json();
+    return rows.length > 0;
+  } catch (e) {
+    return false;
+  }
+}
 
 async function syncToLeaderboard() {
   if (!currentUserKey || !progress) return;
