@@ -813,6 +813,11 @@ function startTones() {
   renderQuestion();
 }
 
+function pinyinWithTranscription(pinyin) {
+  const ru = pinyinToPalladius(pinyin);
+  return ru ? `${pinyin} <span class="transcription-ru">[${ru}]</span>` : pinyin;
+}
+
 function renderQuestion() {
   document.getElementById("feedback").classList.add("hidden");
   refreshHeader();
@@ -829,7 +834,7 @@ function renderQuestion() {
 
   if (word.qType === "tone") {
     label.textContent = "Какой это тон?";
-    main.innerHTML = `${word.hanzi}<br><span class="prompt-main small">${word.pinyin}</span>`;
+    main.innerHTML = `${word.hanzi}<br><span class="prompt-main small">${pinyinWithTranscription(word.pinyin)}</span>`;
     speakBtn.classList.remove("hidden");
     speak(word.hanzi);
     speakBtn.onclick = () => speak(word.hanzi);
@@ -853,7 +858,7 @@ function renderQuestion() {
   let distractorField, optionRenderer;
   if (word.qType === "toRu") {
     label.textContent = "Что это значит?";
-    main.innerHTML = `${word.hanzi}<br><span class="prompt-main small">${word.pinyin}</span>`;
+    main.innerHTML = `${word.hanzi}<br><span class="prompt-main small">${pinyinWithTranscription(word.pinyin)}</span>`;
     distractorField = "ru";
     optionRenderer = (w) => w.ru;
     speakBtn.classList.remove("hidden");
@@ -868,7 +873,7 @@ function renderQuestion() {
     label.textContent = "Как будет по-китайски?";
     main.textContent = word.ru;
     distractorField = "hanzi";
-    optionRenderer = (w) => `${w.hanzi} <span style="font-size:13px;color:#999">${w.pinyin}</span>`;
+    optionRenderer = (w) => `${w.hanzi} <span style="font-size:13px;color:#999">${pinyinWithTranscription(w.pinyin)}</span>`;
     speakBtn.classList.add("hidden");
   }
 
@@ -917,6 +922,14 @@ function checkAnswer(btn, word, correctOptionId, isCorrect) {
   registerAnswer(word.id, isCorrect);
   saveProgress();
   refreshHeader();
+
+  if (word.qType === "toHanzi") {
+    // В этом режиме иероглиф раскрывается только сейчас — озвучиваем его впервые
+    const speakBtn = document.getElementById("btn-speak");
+    speakBtn.classList.remove("hidden");
+    speakBtn.onclick = () => speak(word.hanzi);
+    speak(word.hanzi);
+  }
 
   const feedback = document.getElementById("feedback");
   feedback.classList.remove("hidden", "correct", "wrong");

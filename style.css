@@ -510,6 +510,9 @@ body {
 .search-result-main { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 .search-result-hanzi { font-size: 16px; font-weight: 700; color: var(--text); flex-shrink: 0; }
 .search-result-pinyin { font-size: 12px; color: var(--text-secondary); flex-shrink: 0; }
+
+.transcription-ru { color: var(--text-secondary); font-weight: 500; opacity: 0.85; }
+.prompt-main .transcription-ru { font-size: 0.55em; }
 .search-result-ru { font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-result-lesson { font-size: 11px; color: var(--text-secondary); background: var(--track); padding: 3px 8px; border-radius: 6px; flex-shrink: 0; }
 .search-empty { padding: 16px; text-align: center; color: var(--text-secondary); font-size: 13px; }
