@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Кеду — учи китайский</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.svg">
 <script>
   (function () {
     try {
@@ -21,7 +24,7 @@
 <body>
 
 <header class="topbar" id="topbar">
-  <div class="logo">课度 <span>Кеду</span></div>
+  <div class="logo"><img src="favicon.svg" class="logo-icon" alt="K"> KEDU <span>课度 · Кеду</span></div>
   <div class="stats">
     <div class="stat" id="stat-streak-wrap" title="Дней подряд"><span class="stat-icon">🔥</span> <span id="stat-streak">0</span><span class="stat-freeze hidden" id="stat-freeze">🛡️0</span></div>
     <div class="stat" id="stat-xp-wrap" title="Опыт"><span class="stat-icon">⭐</span> <span id="stat-xp">0</span></div>
@@ -36,7 +39,11 @@
   <!-- ЭКРАН ВХОДА / РЕГИСТРАЦИИ -->
   <section id="screen-auth" class="screen">
     <div class="auth-box">
-      <div class="auth-logo">课度<br><span>Кеду</span></div>
+      <div class="auth-logo">
+        <img src="favicon.svg" class="auth-logo-icon" alt="K">
+        <div class="auth-logo-text">KEDU</div>
+        <span>课度 · Кеду</span>
+      </div>
       <h2 id="auth-title">Вход</h2>
       <form id="auth-form">
         <input id="auth-nickname" class="auth-input" type="text" placeholder="Никнейм" autocomplete="username" required>
